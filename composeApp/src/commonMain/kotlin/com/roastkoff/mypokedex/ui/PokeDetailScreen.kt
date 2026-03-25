@@ -157,7 +157,6 @@ fun TypeBadge(label: String, color: Color) {
     }
 }
 
-
 @Composable
 fun StatsBentoGrid() {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {

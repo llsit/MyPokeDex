@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -49,7 +50,6 @@ kotlin {
             implementation(libs.bundles.koinCommon)
             implementation(libs.navigation3.ui)
             implementation(libs.bundles.coilCommon)
-            implementation(libs.kotlinx.serialization.json)
             implementation(libs.sqlite.bundled)
             implementation(libs.androidx.room.runtime)
             implementation(libs.compose.icons.extended)

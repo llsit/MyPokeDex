@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,6 +25,7 @@ import androidx.compose.material.icons.filled.CatchingPokemon
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,14 +36,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import kotlinx.serialization.Serializable
+import org.koin.compose.viewmodel.koinViewModel
 
 @Serializable
 data class Pokemon(
@@ -56,54 +66,30 @@ data class Pokemon(
         get() = name.lowercase()
 }
 
-val mockPokemonList = listOf(
-    Pokemon(
-        id = "#0001",
-        name = "Bulbasaur",
-        types = listOf("GRASS", "POISON"),
-        imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png",
-        backgroundColorHex = 0xFF4ade80 // green-400
-    ),
-    Pokemon(
-        id = "#0004",
-        name = "Charmander",
-        types = listOf("FIRE"),
-        imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png",
-        backgroundColorHex = 0xFFfb923c // orange-400
-    ),
-    Pokemon(
-        id = "#0007",
-        name = "Squirtle",
-        types = listOf("WATER"),
-        imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png",
-        backgroundColorHex = 0xFF60a5fa // blue-400
-    ),
-    Pokemon(
-        id = "#0006",
-        name = "Charizard",
-        types = listOf("FIRE", "FLYING"),
-        imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png",
-        backgroundColorHex = 0xFFea580c // orange-600
-    ),
-    Pokemon(
-        id = "#0025",
-        name = "Pikachu",
-        types = listOf("ELECTRIC"),
-        imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
-        backgroundColorHex = 0xFFfacc15 // yellow-400
-    ),
-    Pokemon(
-        id = "#0094",
-        name = "Gengar",
-        types = listOf("GHOST", "POISON"),
-        imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png",
-        backgroundColorHex = 0xFFa855f7 // purple-500
-    )
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onClickItem: (Pokemon) -> Unit = {}) {
+fun HomeScreen(
+    viewModel: HomeViewModel = koinViewModel(),
+    onClickItem: (Pokemon) -> Unit = {}
+) {
+    val pokemonList by viewModel.pokemonList.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+
+    val listState = rememberLazyGridState()
+    val shouldLoadMore = remember {
+        derivedStateOf {
+            val totalItems = listState.layoutInfo.totalItemsCount
+            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
+            totalItems > 0 && lastVisibleItem != null && lastVisibleItem.index >= totalItems - 4
+        }
+    }
+
+    LaunchedEffect(shouldLoadMore.value) {
+        if (shouldLoadMore.value && !isLoading && pokemonList.isNotEmpty()) {
+            viewModel.loadNextPage()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -126,31 +112,48 @@ fun HomeScreen(onClickItem: (Pokemon) -> Unit = {}) {
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
                 .background(Color(0xFFF9F9F9))
         ) {
-            OutlinedTextField(
-                value = "",
-                onValueChange = {},
-                placeholder = { Text("Search Pokemon, Move, Type...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(16.dp)
-            )
+            Column {
+                OutlinedTextField(
+                    value = "",
+                    onValueChange = {},
+                    placeholder = { Text("Search Pokemon, Move, Type...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(16.dp)
+                )
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(8.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(mockPokemonList) { pokemon ->
-                    PokemonCard(pokemon = pokemon, onClick = { onClickItem(pokemon) })
+                LazyVerticalGrid(
+                    state = listState,
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(8.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(pokemonList) { pokemon ->
+                        PokemonCard(pokemon = pokemon, onClick = { onClickItem(pokemon) })
+                    }
+
+                    if (isLoading && pokemonList.isNotEmpty()) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Box(
+                                Modifier.fillMaxWidth().padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                            }
+                        }
+                    }
                 }
+            }
+            if (isLoading && pokemonList.isEmpty()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
     }
@@ -246,20 +249,7 @@ fun getPokemonTypeColor(type: String): Color {
         "water" -> Color(0xFF77BDFE)
         "electric" -> Color(0xFFFFD76F)
         "fairy" -> Color(0xFFF8A0E0)
-        "ghost" -> Color(0xFF906790) // ปรับจาก CSS ให้ดู Modern ขึ้น
+        "ghost" -> Color(0xFF906790)
         else -> MaterialTheme.colorScheme.secondary
-    }
-}
-
-// สำหรับพื้นหลังวงกลม (Soft Background)
-fun getPokemonTypeSurface(type: String): Color {
-    return when (type.lowercase()) {
-        "grass" -> Color(0xFFE2F9E1)
-        "fire" -> Color(0xFFFDE1E1)
-        "water" -> Color(0xFFE1F1FD)
-        "electric" -> Color(0xFFFEF6E1)
-        "fairy" -> Color(0xFFFDE1F6)
-        "ghost" -> Color(0xFFEDE1FD)
-        else -> Color(0xFFEEEEEE)
     }
 }

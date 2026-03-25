@@ -1,7 +1,11 @@
 package com.roastkoff.mypokedex
 
 import android.app.Application
+import com.roastkoff.mypokedex.di.commonModule
+import com.roastkoff.mypokedex.di.dataModule
+import com.roastkoff.mypokedex.di.domainModule
 import com.roastkoff.mypokedex.di.initKoin
+import com.roastkoff.mypokedex.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
 
 class MyApplication : Application() {
@@ -9,6 +13,7 @@ class MyApplication : Application() {
         super.onCreate()
         initKoin {
             androidContext(this@MyApplication)
+            modules(commonModule, dataModule, domainModule, viewModelModule)
         }
     }
 }
