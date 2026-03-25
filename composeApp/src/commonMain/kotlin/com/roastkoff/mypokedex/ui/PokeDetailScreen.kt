@@ -14,19 +14,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Leaderboard
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -35,8 +34,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -62,12 +61,11 @@ fun PokeDetailScreen(
     onBackClick: () -> Unit = {}
 ) {
     Scaffold(
+        modifier = Modifier.statusBarsPadding(),
         containerColor = PokedexTheme.Slate950,
-        topBar = { PokedexTopBar(onBackClick) },
-        bottomBar = { PokedexBottomNavigation() }
+        topBar = { PokedexTopBar(onBackClick) }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            // Background Glow Accent
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
@@ -87,7 +85,6 @@ fun PokeDetailScreen(
                 }
 
                 item {
-                    // Pokemon Image with Drop Shadow
                     AsyncImage(
                         model = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png",
                         contentDescription = name,
@@ -103,10 +100,6 @@ fun PokeDetailScreen(
 
                 item {
                     StatsBentoGrid()
-                }
-
-                item {
-                    AddToTeamButton()
                 }
             }
         }
@@ -124,12 +117,12 @@ fun HeaderSection(id: String, name: String) {
             Text(
                 text = id,
                 color = PokedexTheme.Orange500,
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
             )
             Text(
                 text = name,
                 color = Color.White,
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold)
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.ExtraBold)
             )
         }
 
@@ -168,7 +161,6 @@ fun TypeBadge(label: String, color: Color) {
 @Composable
 fun StatsBentoGrid() {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        // About Card
         Surface(
             color = PokedexTheme.Slate900.copy(alpha = 0.4f),
             shape = RoundedCornerShape(16.dp),
@@ -195,7 +187,6 @@ fun StatsBentoGrid() {
             }
         }
 
-        // Base Stats Card
         Surface(
             color = PokedexTheme.Slate900.copy(alpha = 0.4f),
             shape = RoundedCornerShape(16.dp),
@@ -206,7 +197,7 @@ fun StatsBentoGrid() {
                 StatBar("HP", 78, 0.78f)
                 StatBar("ATK", 84, 0.84f)
                 StatBar("DEF", 78, 0.78f)
-                StatBar("SATK", 109, 1.0f) // Clamped for UI
+                StatBar("SATK", 109, 1.0f)
             }
         }
     }
@@ -224,6 +215,12 @@ fun StatBar(label: String, value: Int, progress: Float) {
             modifier = Modifier.width(40.dp),
             style = MaterialTheme.typography.labelSmall
         )
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.weight(1f).height(8.dp).clip(CircleShape),
+            color = PokedexTheme.Orange500,
+            trackColor = PokedexTheme.Slate900
+        )
         Text(
             "$value",
             color = Color.White,
@@ -234,36 +231,8 @@ fun StatBar(label: String, value: Int, progress: Float) {
 }
 
 @Composable
-fun AddToTeamButton() {
-    Button(
-        onClick = { /* TODO */ },
-        modifier = Modifier.fillMaxWidth().height(56.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(contentColor = Color.Transparent),
-        contentPadding = PaddingValues()
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.linearGradient(
-                        listOf(
-                            PokedexTheme.Orange500,
-                            Color(0xFFDC2626)
-                        )
-                    )
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("ADD TO TEAM", color = Color.White, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
 fun PokedexTopBar(
-    onMenuClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {}
+    onClickBack: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -273,12 +242,12 @@ fun PokedexTopBar(
             .padding(horizontal = 24.dp)
     ) {
         IconButton(
-            onClick = onMenuClick,
+            onClick = onClickBack,
             modifier = Modifier.align(Alignment.CenterStart)
         ) {
             Icon(
-                imageVector = Icons.Default.Menu,
-                contentDescription = "Menu",
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "ArrowBack",
                 tint = PokedexTheme.Orange500
             )
         }
@@ -292,17 +261,6 @@ fun PokedexTopBar(
                 color = PokedexTheme.Orange500
             )
         )
-
-        IconButton(
-            onClick = onProfileClick,
-            modifier = Modifier.align(Alignment.CenterEnd)
-        ) {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Profile",
-                tint = PokedexTheme.Orange500
-            )
-        }
     }
 }
 

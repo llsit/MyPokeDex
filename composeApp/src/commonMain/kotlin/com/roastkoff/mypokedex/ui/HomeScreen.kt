@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -22,16 +20,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CatchingPokemon
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -109,7 +103,7 @@ val mockPokemonList = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onClickItem: () -> Unit = {}) {
+fun HomeScreen(onClickItem: (Pokemon) -> Unit = {}) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -130,8 +124,7 @@ fun HomeScreen(onClickItem: () -> Unit = {}) {
                     }
                 }
             )
-        },
-        bottomBar = { PokedexBottomNavigation() }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -139,7 +132,6 @@ fun HomeScreen(onClickItem: () -> Unit = {}) {
                 .fillMaxSize()
                 .background(Color(0xFFF9F9F9))
         ) {
-            // Search Bar
             OutlinedTextField(
                 value = "",
                 onValueChange = {},
@@ -151,14 +143,13 @@ fun HomeScreen(onClickItem: () -> Unit = {}) {
                 shape = RoundedCornerShape(16.dp)
             )
 
-            // Grid List
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(8.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(mockPokemonList) { pokemon ->
-                    PokemonCard(pokemon = pokemon, onClick = { /* Navigate to detail */ })
+                    PokemonCard(pokemon = pokemon, onClick = { onClickItem(pokemon) })
                 }
             }
         }
@@ -190,14 +181,12 @@ fun PokemonCard(
                     .fillMaxWidth()
                     .aspectRatio(1f)
             ) {
-                // วงกลมพื้นหลัง (Background Circle)
                 Surface(
                     shape = CircleShape,
                     color = pokemon.backgroundColor.copy(alpha = 0.2f),
                     modifier = Modifier.fillMaxSize(0.9f)
-                ) {}
+                ) { }
 
-                // Pokemon Image ใช้ Coil 3
                 AsyncImage(
                     model = pokemon.imageUrl,
                     contentDescription = pokemon.name,
@@ -245,33 +234,6 @@ fun TypeBadge(type: String) {
                 color = Color.White
             )
         )
-    }
-}
-
-@Composable
-fun PokedexBottomNavigation() {
-    Surface(
-        color = Color.White.copy(alpha = 0.8f),
-        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-        shadowElevation = 10.dp,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        NavigationBar(
-            containerColor = Color.Transparent,
-            windowInsets = WindowInsets.navigationBars
-        ) {
-            NavigationBarItem(
-                selected = true,
-                onClick = {},
-                icon = { Icon(Icons.Rounded.GridView, "Pokemon") },
-                label = { Text("POKEMON", style = MaterialTheme.typography.labelSmall) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color.Red,
-                    indicatorColor = Color.Red.copy(alpha = 0.1f)
-                )
-            )
-            // เพิ่มไอเทมอื่นๆ (Moves, Items, Profile) ตาม HTML
-        }
     }
 }
 
