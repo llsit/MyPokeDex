@@ -1,5 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -16,7 +15,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -26,20 +25,9 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     jvm()
-    
-    js {
-        browser()
-        binaries.executable()
-    }
-    
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-        binaries.executable()
-    }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
@@ -59,27 +47,21 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.bundles.ktorCommon)
             implementation(libs.bundles.koinCommon)
-            implementation(libs.navigation3.runtime)
-            implementation(libs.navigation3.ui)
+//            implementation(libs.navigation3.runtime)
+//            implementation(libs.navigation3.ui)
             implementation(libs.bundles.coilCommon)
             implementation(libs.kotlinx.serialization.json)
-            implementation(libs.material3.adaptiveNavigation3)
-            implementation(libs.lifecycle.viewmodelNavigation3)
+//            implementation(libs.material3.adaptiveNavigation3)
+//            implementation(libs.lifecycle.viewmodelNavigation3)
             implementation(libs.sqlite.bundled)
             implementation(libs.androidx.room.runtime)
-            implementation(libs.androidx.icons.extended)
+            implementation(libs.compose.icons.extended)
         }
         iosMain.dependencies {
-            implementation(libs.navigation3.ui)
             implementation(libs.ktor.client.darwin)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-        }
-        jvmMain.dependencies {
-            implementation(libs.navigation3.ui)
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutinesSwing)
         }
     }
 }
