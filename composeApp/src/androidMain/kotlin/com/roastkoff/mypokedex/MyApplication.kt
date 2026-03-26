@@ -7,6 +7,7 @@ import com.roastkoff.mypokedex.di.domainModule
 import com.roastkoff.mypokedex.di.initKoin
 import com.roastkoff.mypokedex.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
 
 class MyApplication : Application() {
     override fun onCreate() {
@@ -14,6 +15,7 @@ class MyApplication : Application() {
         initKoin {
             androidContext(this@MyApplication)
             modules(commonModule, dataModule, domainModule, viewModelModule)
+            androidLogger()
         }
     }
 }

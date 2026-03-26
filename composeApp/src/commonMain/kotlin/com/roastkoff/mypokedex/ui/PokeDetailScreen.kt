@@ -31,6 +31,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -44,7 +47,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.roastkoff.mypokedex.model.PokemonDetail
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 object PokedexTheme {
     val Slate950 = Color(0xFF020617)
@@ -52,18 +59,68 @@ object PokedexTheme {
     val Slate400 = Color(0xFF94A3B8)
     val Orange500 = Color(0xFFF97316)
     val Orange600 = Color(0xFFEA580C)
+
+    // Type accent colors (vivid, for badges/glows)
+    val TypeGrass = Color(0xFF48D0B0)
+    val TypeFire = Color(0xFFFB6C6C)
+    val TypeWater = Color(0xFF77BDFE)
+    val TypeElectric = Color(0xFFFFD76F)
+    val TypeFairy = Color(0xFFF8A0E0)
+    val TypeGhost = Color(0xFF906790)
+    val TypePoison = Color(0xFFA040A0)
+    val TypeDefault = Color(0xFF94A3B8)
+
+    // Type surface colors (soft background circles/cards)
+    val TypeGrassSurface = Color(0xFFE2F9E1)
+    val TypeFireSurface = Color(0xFFFDE1E1)
+    val TypeWaterSurface = Color(0xFFE1F1FD)
+    val TypeElectricSurface = Color(0xFFFEF6E1)
+    val TypeFairySurface = Color(0xFFFDE1F6)
+    val TypeGhostSurface = Color(0xFFEDE1FD)
+    val TypeDefaultSurface = Color(0xFFEEEEEE)
+
+    fun typeColor(type: String?): Color = when (type?.lowercase()) {
+        "grass" -> TypeGrass
+        "fire" -> TypeFire
+        "water" -> TypeWater
+        "electric" -> TypeElectric
+        "fairy" -> TypeFairy
+        "ghost" -> TypeGhost
+        "poison" -> TypePoison
+        else -> TypeDefault
+    }
+
+    fun typeSurfaceColor(type: String?): Color = when (type?.lowercase()) {
+        "grass" -> TypeGrassSurface
+        "fire" -> TypeFireSurface
+        "water" -> TypeWaterSurface
+        "electric" -> TypeElectricSurface
+        "fairy" -> TypeFairySurface
+        "ghost" -> TypeGhostSurface
+        else -> TypeDefaultSurface
+    }
 }
 
 @Composable
 fun PokeDetailScreen(
-    pokemonId: String = "#0006",
-    name: String = "Charizard",
+    name: String,
+    viewModel: PokeDetailViewModel = koinViewModel(
+        key = name,
+        parameters = { parametersOf(name) }
+    ),
     onBackClick: () -> Unit = {}
 ) {
+    val pokemon by viewModel.pokemon.collectAsStateWithLifecycle()
+    val typeColor = remember {
+        derivedStateOf {
+            PokedexTheme.typeColor(pokemon?.primaryType)
+        }
+    }
+
     Scaffold(
         modifier = Modifier.statusBarsPadding(),
         containerColor = PokedexTheme.Slate950,
-        topBar = { PokedexTopBar(onBackClick) }
+        topBar = { PokedexTopBar(onBackClick, typeColor.value) }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             Box(
@@ -81,25 +138,25 @@ fun PokeDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    HeaderSection(pokemonId, name)
+                    HeaderSection(pokemon?.id.orEmpty(), name, pokemon?.types.orEmpty())
                 }
 
                 item {
                     AsyncImage(
-                        model = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png",
+                        model = pokemon?.imageUrl,
                         contentDescription = name,
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1f)
                             .graphicsLayer {
                                 shadowElevation = 40f
-                                spotShadowColor = PokedexTheme.Orange500
+                                spotShadowColor = typeColor.value
                             }
                     )
                 }
 
                 item {
-                    StatsBentoGrid()
+                    StatsBentoGrid(pokemon)
                 }
             }
         }
@@ -107,7 +164,9 @@ fun PokeDetailScreen(
 }
 
 @Composable
-fun HeaderSection(id: String, name: String) {
+fun HeaderSection(id: String, name: String, types: List<String>) {
+    val primaryColor = PokedexTheme.typeColor(types.firstOrNull())
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -116,7 +175,7 @@ fun HeaderSection(id: String, name: String) {
         Column {
             Text(
                 text = id,
-                color = PokedexTheme.Orange500,
+                color = primaryColor,
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
             )
             Text(
@@ -127,8 +186,9 @@ fun HeaderSection(id: String, name: String) {
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TypeBadge("FIRE", PokedexTheme.Orange600)
-            TypeBadge("FLYING", Color(0xFF2563EB))
+            types.forEach { type ->
+                TypeBadge(type, PokedexTheme.typeColor(type))
+            }
         }
     }
 }
@@ -158,7 +218,9 @@ fun TypeBadge(label: String, color: Color) {
 }
 
 @Composable
-fun StatsBentoGrid() {
+fun StatsBentoGrid(pokemon: PokemonDetail?) {
+    val primaryColor = PokedexTheme.typeColor(pokemon?.primaryType)
+
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Surface(
             color = PokedexTheme.Slate900.copy(alpha = 0.4f),
@@ -166,11 +228,11 @@ fun StatsBentoGrid() {
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
         ) {
             Column(Modifier.padding(24.dp)) {
-                LabelHeader(Icons.Default.Info, "About")
+                LabelHeader(Icons.Default.Info, "About", primaryColor)
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    StatMetric("Weight", "90.5 kg")
-                    StatMetric("Height", "1.7 m")
+                    StatMetric("Weight", "${pokemon?.weightInKg} kg")
+                    StatMetric("Height", "${pokemon?.heightInMeters} m")
                 }
 
                 Spacer(Modifier.height(16.dp))
@@ -180,8 +242,9 @@ fun StatsBentoGrid() {
                     style = MaterialTheme.typography.labelSmall
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AbilityChip("Blaze")
-                    AbilityChip("Solar Power", isItalic = true)
+                    pokemon?.abilities?.forEach {
+                        AbilityChip(it, primaryColor = primaryColor)
+                    }
                 }
             }
         }
@@ -192,18 +255,44 @@ fun StatsBentoGrid() {
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
         ) {
             Column(Modifier.padding(24.dp)) {
-                LabelHeader(Icons.Default.Leaderboard, "Base Stats")
-                StatBar("HP", 78, 0.78f)
-                StatBar("ATK", 84, 0.84f)
-                StatBar("DEF", 78, 0.78f)
-                StatBar("SATK", 109, 1.0f)
+                LabelHeader(Icons.Default.Leaderboard, "Base Stats", primaryColor)
+                StatBar(
+                    "HP",
+                    primaryColor,
+                    pokemon?.hp ?: 0,
+                    pokemon?.hp?.toFloat()?.div(255f) ?: 0f
+                )
+                StatBar(
+                    "ATK",
+                    primaryColor,
+                    pokemon?.attack ?: 0,
+                    pokemon?.attack?.toFloat()?.div(255f) ?: 0f
+                )
+                StatBar(
+                    "DEF",
+                    primaryColor,
+                    pokemon?.defense ?: 0,
+                    pokemon?.defense?.toFloat()?.div(255f) ?: 0f
+                )
+                StatBar(
+                    "SATK",
+                    primaryColor,
+                    pokemon?.specialAttack ?: 0,
+                    pokemon?.specialAttack?.toFloat()?.div(255f) ?: 0f
+                )
+                StatBar(
+                    "SDEF",
+                    primaryColor,
+                    pokemon?.specialDefense ?: 0,
+                    pokemon?.specialDefense?.toFloat()?.div(255f) ?: 0f
+                )
             }
         }
     }
 }
 
 @Composable
-fun StatBar(label: String, value: Int, progress: Float) {
+fun StatBar(label: String, progressColor: Color, value: Int, progress: Float) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -217,7 +306,7 @@ fun StatBar(label: String, value: Int, progress: Float) {
         LinearProgressIndicator(
             progress = { progress },
             modifier = Modifier.weight(1f).height(8.dp).clip(CircleShape),
-            color = PokedexTheme.Orange500,
+            color = progressColor,
             trackColor = PokedexTheme.Slate900
         )
         Text(
@@ -231,13 +320,14 @@ fun StatBar(label: String, value: Int, progress: Float) {
 
 @Composable
 fun PokedexTopBar(
-    onClickBack: () -> Unit = {}
+    onClickBack: () -> Unit = {},
+    accentColor: Color = PokedexTheme.Orange500
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(64.dp)
-            .background(PokedexTheme.Slate950.copy(alpha = 0.6f)) // Blur effect simulation
+            .background(PokedexTheme.Slate950.copy(alpha = 0.6f))
             .padding(horizontal = 24.dp)
     ) {
         IconButton(
@@ -247,7 +337,7 @@ fun PokedexTopBar(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "ArrowBack",
-                tint = PokedexTheme.Orange500
+                tint = accentColor
             )
         }
 
@@ -257,7 +347,7 @@ fun PokedexTopBar(
             style = MaterialTheme.typography.labelLarge.copy(
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 4.sp,
-                color = PokedexTheme.Orange500
+                color = accentColor
             )
         )
     }
@@ -266,7 +356,8 @@ fun PokedexTopBar(
 @Composable
 fun LabelHeader(
     icon: ImageVector,
-    label: String
+    label: String,
+    color: Color
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -275,7 +366,7 @@ fun LabelHeader(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = PokedexTheme.Orange500,
+            tint = color,
             modifier = Modifier.size(16.dp)
         )
         Spacer(Modifier.width(8.dp))
@@ -314,10 +405,11 @@ fun StatMetric(
 @Composable
 fun AbilityChip(
     ability: String,
-    isItalic: Boolean = false
+    isItalic: Boolean = false,
+    primaryColor: Color
 ) {
     Surface(
-        color = PokedexTheme.Slate950.copy(alpha = 0.5f),
+        color = primaryColor.copy(alpha = 0.5f),
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier.padding(vertical = 4.dp)
     ) {

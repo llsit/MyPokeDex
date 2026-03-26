@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,29 +47,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import kotlinx.serialization.Serializable
+import com.roastkoff.mypokedex.model.Pokemon
 import org.koin.compose.viewmodel.koinViewModel
-
-@Serializable
-data class Pokemon(
-    val id: String,
-    val name: String,
-    val types: List<String>,
-    val imageUrl: String,
-    val backgroundColorHex: Long
-) {
-    val backgroundColor: Color
-        get() = Color(backgroundColorHex)
-
-    val routeId: String
-        get() = name.lowercase()
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel(),
-    onClickItem: (Pokemon) -> Unit = {}
+    onClickItem: (String) -> Unit = {}
 ) {
     val pokemonList by viewModel.pokemonList.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -84,6 +68,14 @@ fun HomeScreen(
         }
     }
 
+    // Trigger initial load
+    LaunchedEffect(Unit) {
+        if (pokemonList.isEmpty()) {
+            viewModel.loadNextPage()
+        }
+    }
+
+    // Trigger pagination load
     LaunchedEffect(shouldLoadMore.value) {
         if (shouldLoadMore.value && !isLoading && pokemonList.isNotEmpty()) {
             viewModel.loadNextPage()
@@ -136,8 +128,8 @@ fun HomeScreen(
                     contentPadding = PaddingValues(8.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(pokemonList) { pokemon ->
-                        PokemonCard(pokemon = pokemon, onClick = { onClickItem(pokemon) })
+                    items(pokemonList.size) { index ->
+                        PokemonCard(pokemon = pokemonList[index], onClick = onClickItem)
                     }
 
                     if (isLoading && pokemonList.isNotEmpty()) {
@@ -162,13 +154,13 @@ fun HomeScreen(
 @Composable
 fun PokemonCard(
     pokemon: Pokemon,
-    onClick: () -> Unit,
+    onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        onClick = onClick,
+        onClick = { onClick(pokemon.name) },
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = pokemon.backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier
             .fillMaxWidth()

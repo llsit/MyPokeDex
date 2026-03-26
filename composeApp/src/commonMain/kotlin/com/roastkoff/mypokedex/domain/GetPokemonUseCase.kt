@@ -1,7 +1,7 @@
 package com.roastkoff.mypokedex.domain
 
 import com.roastkoff.mypokedex.data.PokemonRepository
-import com.roastkoff.mypokedex.ui.Pokemon
+import com.roastkoff.mypokedex.model.Pokemon
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

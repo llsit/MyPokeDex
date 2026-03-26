@@ -1,9 +1,10 @@
 package com.roastkoff.mypokedex.data
 
-import com.roastkoff.mypokedex.ui.Pokemon
+import com.roastkoff.mypokedex.model.Pokemon
 
 interface PokemonRepository {
     suspend fun getPokemonList(limit: Int, offset: Int): Result<List<Pokemon>>
+    suspend fun getPokemonDetail(name: String): Result<PokemonDetailResponse>
 }
 
 class PokemonRepositoryImpl(
@@ -20,11 +21,16 @@ class PokemonRepositoryImpl(
                 id = "#${dto.id.padStart(4, '0')}",
                 name = dto.name.replaceFirstChar { it.uppercase() },
                 imageUrl = dto.imageUrl,
-                types = emptyList(),
-                backgroundColorHex = 0xFFF3F3F3
+                types = emptyList()
             )
         }
 
         return Result.success(result)
+    }
+
+    override suspend fun getPokemonDetail(name: String): Result<PokemonDetailResponse> {
+        val response = api.fetchDetail(name)
+
+        return Result.success(response)
     }
 }

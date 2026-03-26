@@ -6,6 +6,7 @@ import io.ktor.client.request.get
 
 interface PokemonApi {
     suspend fun fetchList(limit: Int, offset: Int): PokemonListResponse
+    suspend fun fetchDetail(name: String): PokemonDetailResponse
 }
 
 class KtorPokemonApi(private val client: HttpClient) : PokemonApi {
@@ -20,5 +21,9 @@ class KtorPokemonApi(private val client: HttpClient) : PokemonApi {
                 parameters.append("offset", offset.toString())
             }
         }.body()
+    }
+
+    override suspend fun fetchDetail(name: String): PokemonDetailResponse {
+        return client.get("$BASE_URL/$name").body()
     }
 }

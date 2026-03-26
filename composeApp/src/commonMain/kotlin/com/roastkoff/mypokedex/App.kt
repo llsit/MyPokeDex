@@ -22,15 +22,14 @@ fun App() {
             onBack = { navigator.goBack() },
             entryProvider = { key ->
                 when (key) {
-
-                    Screen.Home -> NavEntry(key) {
+                    is Screen.Home -> NavEntry(key) {
                         HomeScreen {
                             navigator.goTo(Screen.Detail(it))
                         }
                     }
 
                     is Screen.Detail -> NavEntry(key) {
-                        PokeDetailScreen(onBackClick = { navigator.goBack() })
+                        PokeDetailScreen(name = key.name, onBackClick = { navigator.goBack() })
                     }
 
                     else -> {

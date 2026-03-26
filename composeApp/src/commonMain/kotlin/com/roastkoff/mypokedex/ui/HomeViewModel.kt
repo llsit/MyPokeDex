@@ -3,6 +3,7 @@ package com.roastkoff.mypokedex.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.roastkoff.mypokedex.domain.GetPokemonUseCase
+import com.roastkoff.mypokedex.model.Pokemon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -20,12 +21,6 @@ class HomeViewModel(
 
     private var currentPage = 0
     private var isLastPage = false
-
-    init {
-        if (_pokemonList.value.isEmpty()) {
-            loadNextPage()
-        }
-    }
 
     fun loadNextPage() {
         if (_isLoading.value || isLastPage) return
