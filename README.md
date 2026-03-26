@@ -1,76 +1,64 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM).
+# MyPokeDeX
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+A modern PokeDeX application built with **Kotlin Multiplatform (KMP)** and **Compose Multiplatform**. It demonstrates a clean architecture approach, modern UI components, and state-of-the-art libraries for a consistent experience across Android, iOS, and Desktop.
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+## 🚀 Features
 
-### Build and Run Android Application
+- **Multiplatform Support**: Shared business logic and UI across Android, iOS, and Desktop (JVM).
+- **Modern UI**: Built with Jetpack Compose / Compose Multiplatform using Material 3.
+- **PokeAPI Integration**: Fetches real-time data from the popular [PokeAPI](https://pokeapi.co/).
+- **Efficient Image Loading**: Uses Coil 3 with Ktor integration for cross-platform image fetching.
+- **Reactive Navigation**: Implements `Navigation3` for type-safe, multiplatform-ready navigation.
+- **Dependency Injection**: Uses Koin for flexible and lightweight DI.
+- **Robust Networking**: Uses Ktor 3 with platform-specific engines (OkHttp for Android/JVM, Darwin for iOS).
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
+## 🛠️ Tech Stack & Libraries
 
-### Build and Run Desktop (JVM) Application
+### Core
+- **Kotlin Multiplatform**: Shared code between mobile and desktop.
+- **Compose Multiplatform**: Declarative UI for all platforms.
+- **Coroutines & Flow**: Asynchronous programming and reactive data streams.
+- **Kotlinx Serialization**: JSON parsing and data modeling.
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
+### Networking & Data
+- **Ktor (3.0.1)**: HTTP client for multiplatform networking.
+- **Coil (3.4.0)**: Image loading library with KMP support.
+- **Room (2.8.4)**: Local persistence (configured for KMP).
 
-### Build and Run Web Application
+### Architecture & Navigation
+- **Koin (4.0.0)**: Dependency injection.
+- **Navigation3**: Modern, type-safe navigation for KMP.
+- **Lifecycle ViewModel**: Shared ViewModels with platform-aware lifecycle management.
 
-To build and run the development version of the web app, use the run configuration from the run widget
-in your IDE's toolbar or run it directly from the terminal:
-- for the Wasm target (faster, modern browsers):
-  - on macOS/Linux
-    ```shell
-    ./gradlew :composeApp:wasmJsBrowserDevelopmentRun
-    ```
-  - on Windows
-    ```shell
-    .\gradlew.bat :composeApp:wasmJsBrowserDevelopmentRun
-    ```
-- for the JS target (slower, supports older browsers):
-  - on macOS/Linux
-    ```shell
-    ./gradlew :composeApp:jsBrowserDevelopmentRun
-    ```
-  - on Windows
-    ```shell
-    .\gradlew.bat :composeApp:jsBrowserDevelopmentRun
-    ```
+## 📂 Project Structure
 
-### Build and Run iOS Application
+- `composeApp/src/commonMain`: Shared UI and business logic (Repository, UseCases, ViewModels, Composables).
+- `composeApp/src/androidMain`: Android-specific implementations and entry point.
+- `composeApp/src/iosMain`: iOS-specific implementations.
+- `composeApp/src/jvmMain`: Desktop-specific implementations.
+- `iosApp`: Swift project for the iOS target.
 
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+## ⚙️ Requirements
+
+- **Android Studio Ladybug** or newer.
+- **Xcode** (for iOS development).
+- **JDK 11** or newer (Project uses JVM 11 target).
+
+## 🏃 Getting Started
+
+### Android
+Open the project in Android Studio and run the `composeApp` configuration.
+
+### iOS
+1. Open the `iosApp/iosApp.xcodeproj` in Xcode.
+2. Build and run the project.
+
+### Desktop
+Run the following command in the terminal:
+```bash
+./gradlew :composeApp:run
+```
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
-
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+Built with ❤️ using Kotlin Multiplatform.
