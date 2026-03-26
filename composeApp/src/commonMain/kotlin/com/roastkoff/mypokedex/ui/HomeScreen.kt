@@ -1,7 +1,9 @@
 package com.roastkoff.mypokedex.ui
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,15 +23,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CatchingPokemon
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,7 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.roastkoff.mypokedex.model.Pokemon
@@ -95,11 +93,6 @@ fun HomeScreen(
                         Spacer(Modifier.width(8.dp))
                         Text("Pokedex", fontWeight = FontWeight.Black)
                     }
-                },
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
-                    }
                 }
             )
         }
@@ -111,17 +104,6 @@ fun HomeScreen(
                 .background(Color(0xFFF9F9F9))
         ) {
             Column {
-                OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
-                    placeholder = { Text("Search Pokemon, Move, Type...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    shape = RoundedCornerShape(16.dp)
-                )
-
                 LazyVerticalGrid(
                     state = listState,
                     columns = GridCells.Fixed(2),
@@ -129,7 +111,14 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(pokemonList.size) { index ->
-                        PokemonCard(pokemon = pokemonList[index], onClick = onClickItem)
+                        PokemonCard(
+                            pokemon = pokemonList[index],
+                            onClick = onClickItem,
+                            modifier = Modifier.animateItem(
+                                fadeInSpec = tween(300),
+                                placementSpec = spring(stiffness = Spring.StiffnessLow)
+                            )
+                        )
                     }
 
                     if (isLoading && pokemonList.isNotEmpty()) {
@@ -181,7 +170,6 @@ fun PokemonCard(
                     color = pokemon.backgroundColor.copy(alpha = 0.2f),
                     modifier = Modifier.fillMaxSize(0.9f)
                 ) { }
-
                 AsyncImage(
                     model = pokemon.imageUrl,
                     contentDescription = pokemon.name,
@@ -192,7 +180,7 @@ fun PokemonCard(
             Text(
                 text = "#${pokemon.id}",
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray.copy(alpha = 0.6f),
+                color = Color.Black.copy(alpha = 0.6f),
                 fontWeight = FontWeight.Bold
             )
 
@@ -201,47 +189,6 @@ fun PokemonCard(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold
             )
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                pokemon.types.forEach { type ->
-                    TypeBadge(type)
-                }
-            }
         }
-    }
-}
-
-@Composable
-fun TypeBadge(type: String) {
-    Surface(
-        color = getPokemonTypeColor(type),
-        shape = CircleShape
-    ) {
-        Text(
-            text = type.uppercase(),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 8.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-        )
-    }
-}
-
-@Composable
-fun getPokemonTypeColor(type: String): Color {
-    return when (type.lowercase()) {
-        "grass" -> Color(0xFF48D0B0)
-        "poison" -> Color(0xFFA040A0)
-        "fire" -> Color(0xFFFB6C6C)
-        "water" -> Color(0xFF77BDFE)
-        "electric" -> Color(0xFFFFD76F)
-        "fairy" -> Color(0xFFF8A0E0)
-        "ghost" -> Color(0xFF906790)
-        else -> MaterialTheme.colorScheme.secondary
     }
 }
